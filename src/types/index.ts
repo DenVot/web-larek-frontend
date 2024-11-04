@@ -1,45 +1,23 @@
 import { EventEmitter } from '../components/base/events';
 
-export interface IProduct {
-	id: number;
-	name: string;
+export interface Product {
+	id: string;
+	description: string;
+	image: string;
+	title: string;
 	category: string;
 	price: number;
-	image: string;
-	description: string;
 }
 
 export interface ICartItem {
-	product: IProduct;
+	product: Product;
 	quantity: number;
-}
-
-export class Product implements IProduct {
-	constructor(
-		public id: number,
-		public name: string,
-		public category: string,
-		public price: number,
-		public image: string,
-		public description: string
-	) {}
-
-	static fromData(data: IProduct): Product {
-		return new Product(
-			data.id,
-			data.name,
-			data.category,
-			data.price,
-			data.image,
-			data.description
-		);
-	}
 }
 
 export class Cart extends EventEmitter {
 	private items: ICartItem[] = [];
 
-	addItem(product: IProduct): void {
+	addItem(product: Product): void {
 		const cartItem: ICartItem = {
 			product: product,
 			quantity: 1
