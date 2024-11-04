@@ -121,6 +121,11 @@ class DeliveryModalView extends Modal {
                 ContactsModalView.instance.show(this.orderInfo);
             }
         });
+
+        container.querySelector("#modal-delivery .modal__close").addEventListener("click", () => {
+            this.active = false;
+            this.render();
+        });
     }
 
     render() {
@@ -178,7 +183,12 @@ class ContactsModalView extends Modal {
                 Cart.instance.clear();
                 SuccessModalView.instance.show(this.orderInfo);
             });
-        })
+        });
+
+        container.querySelector("#modal-contacts .modal__close").addEventListener("click", () => {
+            this.active = false;
+            this.render();
+        });
     }
 
     render() {
@@ -218,6 +228,11 @@ class SuccessModalView extends Modal {
         container.querySelector(".order-success__close").addEventListener("click", () => {
            this.active = false;
            this.render();
+        });
+
+        container.querySelector("#modal-success .modal__close").addEventListener("click", () => {
+            this.active = false;
+            this.render();
         });
     }
 
