@@ -2,14 +2,8 @@ import { Modal } from './Modal';
 import { Cart, ICartItem } from '../../types';
 import { View } from './View';
 import { cloneTemplate } from '../../utils/utils';
-import { OrderInfo, PayMethods } from '../base/web-larek-client';
-
-interface UserOrderInfo {
-    payment: string;
-    email: string;
-    phone: string;
-    address: string;
-}
+import { OrderInfo, PayMethods, WebLarekClient } from '../base/web-larek-client';
+import { Api } from '../base/api';
 
 class CartModalView extends Modal{
     private static inst: CartModalView;
@@ -115,6 +109,18 @@ class DeliveryModalView extends Modal {
             this.orderInfo.address = target.value;
             this.render();
         });
+
+        container.querySelector("#modal-delivery .modal__actions button").addEventListener("click", (e) => {
+            e.preventDefault();
+            const target = e.target as HTMLButtonElement;
+
+            if (!target.disabled) {
+                this.container.classList.remove("modal_active");
+                this.active = false;
+
+                ContactsModalView.instance.show(this.orderInfo);
+            }
+        });
     }
 
     render() {
@@ -134,11 +140,6 @@ class DeliveryModalView extends Modal {
         this.render();
     }
 
-    hide() {
-        this.active = false;
-        this.render();
-    }
-
     static get instance(): DeliveryModalView {
         if (this.inst == null) {
             this.inst = new DeliveryModalView(document.getElementById("modal-delivery"));
@@ -151,16 +152,98 @@ class DeliveryModalView extends Modal {
 class ContactsModalView extends Modal {
     private static inst: ContactsModalView;
     private active = false;
+    private orderInfo: OrderInfo;
+
+    private constructor(container: HTMLElement) {
+        super(container);
+        container.querySelector(".form__input_email").addEventListener("input", (e) => {
+            const target = e.target as HTMLInputElement;
+            this.orderInfo.email = target.value;
+            this.render();
+        });
+
+        container.querySelector(".form__input_phone").addEventListener("input", (e) => {
+            const target = e.target as HTMLInputElement;
+            this.orderInfo.phone = target.value;
+            this.render();
+        });
+
+        container.querySelector("#modal-contacts .modal__actions button").addEventListener("click", (e) => {
+            e.preventDefault();
+            const webLarekClient = new WebLarekClient(new Api(process.env.API_ORIGIN));
+
+            webLarekClient.createOrder(this.orderInfo).then(() => {
+                this.active = false;
+                this.render();
+                Cart.instance.clear();
+                SuccessModalView.instance.show(this.orderInfo);
+            });
+        })
+    }
+
+    render() {
+        if (this.active) {
+            this.container.classList.add("modal_active");
+        } else {
+            this.container.classList.remove("modal_active");
+        }
+
+        const button = this.container.querySelector(".modal__actions button") as HTMLButtonElement;
+        button.disabled = this.orderInfo.email == null || this.orderInfo.phone == null || this.orderInfo.email.trim().length == 0 || this.orderInfo.phone.trim().length == 0;
+    }
+
+    show(orderInfo: OrderInfo): void {
+        this.active = true;
+        this.orderInfo = orderInfo;
+        this.render();
+    }
+
+    static get instance(): ContactsModalView {
+        if (this.inst == null) {
+            this.inst = new ContactsModalView(document.getElementById("modal-contacts"));
+        }
+
+        return this.inst;
+    }
+}
+
+class SuccessModalView extends Modal {
+    private static inst: SuccessModalView;
+    private active = false;
+    private orderInfo: OrderInfo;
 
     private constructor(container: HTMLElement) {
         super(container);
 
+        container.querySelector(".order-success__close").addEventListener("click", () => {
+           this.active = false;
+           this.render();
+        });
     }
 
     render() {
+        if (this.active) {
+            this.container.classList.add("modal_active");
+        } else {
+            this.container.classList.remove("modal_active");
+        }
+
+        document.querySelector(".film__description").textContent = `Списано ${this.orderInfo.total} синапсов`;
     }
 
+    show(orderInfo: OrderInfo): void {
+        this.active = true;
+        this.orderInfo = orderInfo;
+        this.render();
+    }
 
+    static get instance(): SuccessModalView {
+        if (this.inst == null) {
+            this.inst = new SuccessModalView(document.getElementById("modal-success"));
+        }
+
+        return this.inst;
+    }
 }
 
 export class CartView extends View {

@@ -43,6 +43,11 @@ export class Cart extends EventEmitter {
 		return [...this.items];
 	}
 
+	clear() {
+		this.items = [];
+		this.emit('cart-updated', this.items);
+	}
+
 	static get instance(): Cart {
 		if (this.cart == null) {
 			this.cart = new Cart();
