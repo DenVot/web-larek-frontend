@@ -27,7 +27,7 @@ export class Api {
 
     get(uri: string) {
         return fetch(this.baseUrl + uri, {
-            ...this.options,
+            // ...this.options,
             method: 'GET'
         }).then(this.handleResponse);
     }

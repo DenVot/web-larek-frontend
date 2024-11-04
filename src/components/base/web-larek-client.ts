@@ -12,24 +12,28 @@ export interface OrderInfo {
 	items: string[];
 }
 
-export class WebLarekApi {
-	private _api: Api;
+interface ProductsResponse {
+	items: Product[]
+}
+
+export class WebLarekClient {
+	private api: Api;
 
 	constructor(apiClient: Api) {
-		this._api = apiClient;
+		this.api = apiClient;
 	}
 
 	fetchAllProducts(): Promise<Product[]> {
-		return this._api.get('/product').then(response => {
-			return response as Product[];
+		return this.api.get('/product').then(response => {
+			return (response as ProductsResponse).items;
 		});
 	}
 
 	fetchProductById(id: string): Promise<Product> {
-		return this._api.get(`/product/${id}`).then(response => response as Product);
+		return this.api.get(`/product/${id}`).then(response => response as Product);
 	}
 
 	createOrder(order: OrderInfo) {
-		return this._api.post(`/order`, order);
+		return this.api.post(`/order`, order);
 	}
 }

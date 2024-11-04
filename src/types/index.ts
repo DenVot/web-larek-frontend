@@ -1,11 +1,13 @@
 import { EventEmitter } from '../components/base/events';
 
+export type ProductCategory = "софт-скилл" | "другое" | "дополнительное" | "кнопка" | "хард-скилл";
+
 export interface Product {
 	id: string;
 	description: string;
 	image: string;
 	title: string;
-	category: string;
+	category: ProductCategory;
 	price: number;
 }
 
@@ -15,7 +17,13 @@ export interface ICartItem {
 }
 
 export class Cart extends EventEmitter {
+	private static cart: Cart;
+
 	private items: ICartItem[] = [];
+
+	private constructor() {
+		super();
+	}
 
 	addItem(product: Product): void {
 		const cartItem: ICartItem = {
@@ -23,30 +31,23 @@ export class Cart extends EventEmitter {
 			quantity: 1
 		};
 		this.items.push(cartItem);
-		this.emit('itemAdded', cartItem);
-		this.emit('changed', this.items);
+		this.emit('cart-updated', this.items);
 	}
 
-
-	removeItem(index: number): void {
-		if (index >= 0 && index < this.items.length) {
-			const removed = this.items.splice(index, 1)[0];
-			this.emit('itemRemoved', removed);
-			this.emit('changed', this.items);
-		}
+	removeItem(cartItem: ICartItem): void {
+		this.items = this.items.filter(item => item !== cartItem);
+		this.emit('cart-updated', this.items);
 	}
 
 	getItems(): ICartItem[] {
 		return [...this.items];
 	}
 
-	getTotal(): number {
-		return this.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-	}
+	static get instance(): Cart {
+		if (this.cart == null) {
+			this.cart = new Cart();
+		}
 
-	clear(): void {
-		this.items = [];
-		this.emit('cleared');
-		this.emit('changed', this.items);
+		return this.cart;
 	}
 }
